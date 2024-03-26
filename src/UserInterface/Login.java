@@ -6,8 +6,21 @@ import java.io.*;
 import java.util.Scanner;
 
 public class Login {
-    private static final String DATA_PATH = System.getProperty("user.dir") + "/src/Data/Users/Users.txt";
+    public static final String DATA_PATH = System.getProperty("user.dir") + "/src/Data/Users/Users.txt";
+    private static String loggedInUserId = null;
+    private static String loggedInUserPassword = null;
 
+    // Getter & Setter
+
+    public static String getLoggedInUserId() {
+        return loggedInUserId;
+    }
+
+    public static String getLoggedInUserPassword() {
+        return loggedInUserPassword;
+    }
+
+    // METHODS
     public static void login(Scanner scanner) throws IOException {
         boolean loginSuccess = false;
         while (!loginSuccess) {
@@ -38,6 +51,8 @@ public class Login {
         while ((line = reader.readLine()) != null) {
             String[] userDetails = line.split(",");
             if (userDetails[0].equals(id) && userDetails[1].equals(password)) {
+                loggedInUserId = id;
+                loggedInUserPassword = password;
                 reader.close();
                 return true;
             }
@@ -59,7 +74,7 @@ public class Login {
 
             if (isIdExists(newId)) {
                 System.out.println("\n※ This is a duplicate ID ※");
-                System.out.println("\n※ Please enter another ID ※");
+                System.out.println("※ Please enter another ID ※");
                 System.out.println("※ Enter 'back' to return to the main menu or try again ※");
             } else if (!isValidRegistration(newId, newPassword)) {
                 System.out.println("\n※ Please enter a valid 5-character minimum ID & 8-character minimum password (letters & numbers) ※");
@@ -93,4 +108,5 @@ public class Login {
         reader.close();
         return false;
     }
+
 }
