@@ -57,7 +57,11 @@ public class Login {
             String newPassword = scanner.nextLine();
             if ("back".equalsIgnoreCase(newPassword)) return; // Go back to main menu
 
-            if (!isValidRegistration(newId, newPassword)) {
+            if (isIdExists(newId)) {
+                System.out.println("\n※ This is a duplicate ID ※");
+                System.out.println("\n※ Please enter another ID ※");
+                System.out.println("※ Enter 'back' to return to the main menu or try again ※");
+            } else if (!isValidRegistration(newId, newPassword)) {
                 System.out.println("\n※ Please enter a valid 5-character minimum ID & 8-character minimum password (letters & numbers) ※");
                 System.out.println("※ Enter 'back' to return to the main menu or try again ※");
             } else {
@@ -75,4 +79,18 @@ public class Login {
         return id.length() >= 5 && password.length() >= 8 && password.matches("^(?=.*[0-9])(?=.*[a-zA-Z])(?=\\S+$).{8,}$");
     }
 
+    // Check if the ID already exists
+    private static boolean isIdExists(String id) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(DATA_PATH));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] userDetails = line.split(",");
+            if (userDetails[0].equals(id)) {
+                reader.close();
+                return true;
+            }
+        }
+        reader.close();
+        return false;
+    }
 }
