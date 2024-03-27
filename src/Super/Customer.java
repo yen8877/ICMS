@@ -9,26 +9,22 @@ import java.util.List;
 public class Customer {
     private String cid; // Format: c-numbers; 7 numbers
     private String fullName;
-    private String cPassword;
     private InsuranceCard insuranceCard;
     private boolean isPolicyHolder;
     private List<String> claims = new ArrayList<>();
     private List<Customer> dependents = new ArrayList<>();
 
-    public Customer(String cid, String fullName, String cPassword, InsuranceCard insuranceCard, boolean isPolicyHolder){
+    public Customer(String cid, String fullName, boolean isPolicyHolder){
         this.cid = cid;
         this.fullName = fullName;
-        this.cPassword = cPassword;
-        this.insuranceCard = insuranceCard;
         this.isPolicyHolder = isPolicyHolder;
     }
 
-    // Method to add a claim
+    // Method
     public void addClaim(String claim) {
         claims.add(claim);
     }
 
-    // Method to add a dependent, only valid for policy holders
     public void addDependent(Customer dependent) {
         if (isPolicyHolder) {
             dependents.add(dependent);
@@ -37,9 +33,15 @@ public class Customer {
         }
     }
 
-    // Getters and Setters
-    // Omitting setters for simplicity, they can be added as needed
+    public void setDependents(List<String> dependentsNames) {
+        this.dependents.clear();
+        for (String name : dependentsNames) {
+            Customer dependent = new Customer("", name, false);
+            this.dependents.add(dependent);
+        }
+    }
 
+    // Getters and Setters
     public String getId() {
         return cid;
     }
@@ -48,14 +50,12 @@ public class Customer {
         return fullName;
     }
 
-    public String getcPassword() {
-        return cPassword;
-    }
-
     public InsuranceCard getInsuranceCard() {
         return insuranceCard;
     }
-
+    public void setInsuranceCard(InsuranceCard insuranceCard) {
+        this.insuranceCard = insuranceCard;
+    }
     public List<String> getClaims() {
         return claims;
     }

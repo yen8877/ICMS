@@ -6,11 +6,11 @@ import java.time.LocalDate;
 
 public class InsuranceCard {
     private String cardNum;
-    private String cardHolder;
+    private Customer cardHolder;
     private String policyOwner;
     private LocalDate expirationDate;
 
-    public InsuranceCard(String cardNum, String cardHolder, String policyOwner, LocalDate expirationDate) {
+    public InsuranceCard(String cardNum, Customer cardHolder, String policyOwner, LocalDate expirationDate) {
         this.cardNum = cardNum;
         this.cardHolder = cardHolder;
         this.policyOwner = policyOwner;
@@ -25,10 +25,10 @@ public class InsuranceCard {
         this.cardNum = cardNum;
     }
 
-    public String getCardHolder() {
+    public Customer getCardHolder() {
         return cardHolder;
     }
-    public void setCardHolder(String cardHolder) {
+    public void setCardHolder(Customer cardHolder) {
         this.cardHolder = cardHolder;
     }
 
