@@ -165,7 +165,7 @@ public class Main {
             }
             switch (choice) {
                 case 1:
-                    // List All Claims
+                    listAllClaims();
                     break;
                 case 2:
                     // View Claim Details
@@ -620,7 +620,7 @@ public class Main {
             System.out.println("- Enter dependents' IDs (comma separated, leave blank if none):");
             String dependentsInput = scanner.nextLine().trim();
             if (dependentsInput.isEmpty()) {
-                break; // 입력이 없으면 반복 종료
+                break;
             }
 
             String[] inputIds = dependentsInput.split(",");
@@ -647,7 +647,7 @@ public class Main {
 
             if (isValidInput) {
                 dependentsIds.addAll(validatedDependentsIds);
-                break; // 모든 검증을 통과하면 while 루프 종료
+                break;
             }
         }
         return dependentsIds;
@@ -683,7 +683,6 @@ public class Main {
             return false;
         }
     }
-
 
     private static void saveCustomerToFile(String customerId, String fullName, String policyHolder, List<String> dependentsIds, String insuranceCardNumber, String expirationDate, String policyOwner, Path CUSTOMERS_DIR_PATH) {
         Path filePath = CUSTOMERS_DIR_PATH.resolve(customerId + "_" + fullName + ".txt");
@@ -796,7 +795,95 @@ public class Main {
 
     // Main-[2] Manage Claim
         // [1] List All Cliam
+    public static void listAllClaims() throws IOException {
+        Scanner scanner = new Scanner(System.in);
+        boolean exitMenu = false;
 
+        while (!exitMenu) {
+            System.out.println("\nList all claims\n" +
+                    "\t[1] Claims List of One Customer\n" +
+                    "\t[2] Total Claim List\n" +
+                    "\t[3] List All Claim Documents\n" +
+                    "\t[4] Exit\n" +
+                    "Choose an option:");
+
+            int option = scanner.nextInt();
+
+            switch (option) {
+                case 1:
+                    System.out.println("\n - Enter Customer ID:");
+                    scanner.nextLine();
+                    String customerId = scanner.nextLine();
+                    if (!printCustomerClaims(customerId)) {
+                        System.out.println("\n※ Customer ID does not exist ※");
+                    }
+                    break;
+                case 2:
+                    printAllClaims();
+                    break;
+                case 3:
+                    // Implement as needed
+                    break;
+                case 4:
+                    exitMenu = true;
+                    break;
+                default:
+                    System.out.println("\n※ Invalid option ※");
+            }
+        }
+    }
+
+    private static boolean printCustomerClaims(String customerId) throws IOException {
+        Path dirPath = Paths.get("src/Data/Customers");
+        boolean fileFound = false;
+
+        try (Stream<Path> paths = Files.walk(dirPath)) {
+            // 이 코드는 지정된 디렉토리에서 모든 파일을 탐색합니다.
+            // 파일 이름이 고객 아이디로 시작하는 경우 해당 파일을 찾아 처리합니다.
+            fileFound = paths
+                    .filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().startsWith(customerId))
+                    .findFirst() // 첫 번째 일치하는 파일을 찾습니다.
+                    .map(path -> {
+                        try {
+                            printClaimsFromFile(path);
+                            return true; // 파일 처리 성공
+                        } catch (IOException e) {
+                            System.out.println("An error occurred while reading the file: " + e.getMessage());
+                            return false; // 파일 처리 중 에러 발생
+                        }
+                    }).orElse(false); // 일치하는 파일이 없는 경우
+        }
+
+        return fileFound;
+    }
+
+    private static void printClaimsFromFile(Path filePath) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(filePath.toFile()));
+        String line;
+        boolean claimSection = false;
+
+        while ((line = reader.readLine()) != null) {
+            if (line.startsWith("Claim List:")) {
+                claimSection = true;
+                continue;
+            }
+            if (claimSection) {
+                System.out.println(line);
+            }
+        }
+        reader.close();
+    }
+
+    private static void printAllClaims() throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader("src/Data/Claims/ClaimList.txt"));
+        String line;
+
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+        reader.close();
+    }
         // [2] View Claim Details
 
         // [3] Add New Claim
