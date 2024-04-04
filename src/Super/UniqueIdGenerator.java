@@ -5,11 +5,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 public class UniqueIdGenerator {
     private static UniqueIdGenerator instance;
     private static final Path CUSTOMERS_DIR_PATH = Paths.get("src/Data/Customers");
+    private static final Path CLAIMS_LIST_PATH = Paths.get("src/Data/Claims/ClaimList.txt");
     private static final Random random = new Random();
 
     private UniqueIdGenerator() {}
@@ -31,7 +33,7 @@ public class UniqueIdGenerator {
 
             return "c" + (maxId + 1);
         } catch (IOException e) {
-            throw new RuntimeException("고객 목록을 불러오는데 실패했습니다.", e);
+            throw new RuntimeException("\n※ Fail to find Customer Data ※", e);
         }
     }
 
@@ -40,4 +42,22 @@ public class UniqueIdGenerator {
         int lastPart = random.nextInt(100000); // 동일한 범위의 랜덤한 숫자
         return String.format("%05d-%05d", firstPart, lastPart);
     }
+
+    public static synchronized String generateClaimId() {
+        AtomicLong maxId = new AtomicLong(0); // Use AtomicLong for thread safety
+
+        try {
+            Files.lines(CLAIMS_LIST_PATH)
+                    .map(line -> line.split(" \\| ")[0].trim()) // Extract the ID part
+                    .map(id -> id.substring(1)) // Remove the leading 'f'
+                    .mapToLong(Long::parseLong)
+                    .max()
+                    .ifPresent(max -> maxId.set(max)); // Update the maxId if a max value is present
+
+            return "f" + String.format("%010d", maxId.incrementAndGet()); // Increment and format the new ID
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read Claims Data: " + e.getMessage(), e);
+        }
+    }
+
 }

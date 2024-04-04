@@ -13,7 +13,7 @@ public class Claim {
     private String insuredPerson; // Assuming this refers to the Customer's ID for simplicity
     private String cardNumber;
     private LocalDate examDate;
-    private List<String> documents = new ArrayList<>();
+    private List<String> documentName = new ArrayList<>();
     private double claimAmount;
     private ClaimStatus status;
     private ReceiverBankingInfo receiverBankingInfo;
@@ -29,10 +29,11 @@ public class Claim {
         this.receiverBankingInfo = receiverBankingInfo;
     }
 
-    // Method to add a document with the specified format
     public void addDocument(String documentName) {
-        String formattedName = String.format("%s_%s_%s.pdf", this.fid, this.cardNumber, documentName);
-        documents.add(formattedName);
+        if(this.status == ClaimStatus.DONE) {
+            String formattedName = String.format("%s_%s_%s.pdf", this.fid, this.cardNumber, documentName);
+            this.documentName.add(formattedName);
+        }
     }
 
     // Getters and Setters
@@ -56,8 +57,8 @@ public class Claim {
         return examDate;
     }
 
-    public List<String> getDocuments() {
-        return documents;
+    public List<String> getDocumentName() {
+        return documentName;
     }
 
     public double getClaimAmount() {
@@ -78,6 +79,9 @@ public class Claim {
     }
 
     // ReceiverBankingInfo inner class
+    public void setDocumentNames(List<String> documentNames) {
+        this.documentName = documentNames;
+    }
     public static class ReceiverBankingInfo {
         private String bank;
         private String name;

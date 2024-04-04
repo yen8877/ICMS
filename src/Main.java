@@ -6,11 +6,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.nio.file.StandardOpenOption;
 
 
 import src.Super.Customer;
@@ -18,6 +20,9 @@ import src.Super.InsuranceCard;
 import src.Super.UniqueIdGenerator;
 import src.UserInterface.Login;
 import static src.UserInterface.Login.*;
+import src.Super.Claim;
+import src.Super.Claim.ClaimStatus;
+import src.Super.Claim.ReceiverBankingInfo;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -78,7 +83,7 @@ public class Main {
                     manageCustomer();
                     break;
                 case 2:
-                    // manage claims Logic
+                    manageClaim();
                     break;
                 case 3:
                     Profile();
@@ -99,8 +104,8 @@ public class Main {
             System.out.println("\n[ Manage Customer ]");
             System.out.println("[1] List All Customers");
             System.out.println("[2] View Customer Details");
-            System.out.println("[3] Update Customer Information");
-            System.out.println("[4] Add New Customer");
+            System.out.println("[3] Add New Customer");
+            System.out.println("[4] Update Customer Information");
             System.out.println("[5] Delete Customer");
             System.out.println("[6] Exit");
             System.out.print("Choose an option: ");
@@ -121,10 +126,11 @@ public class Main {
                     viewCustomerDetails();
                     break;
                 case 3:
-                    updateCustomerInfo();
+                    addNewCustomer();
                     break;
                 case 4:
-                    addNewCustomer();
+                    updateCustomerInfo();
+
                     break;
                 case 5:
                     deleteCustomer();
@@ -137,6 +143,50 @@ public class Main {
             }}}
 
     // Main-[2] Manage Claims
+    public  void manageClaim() throws IOException {
+        Scanner scanner = new Scanner(System.in);
+        while(true) {
+            System.out.println("\n[ Manage Claim ]");
+            System.out.println("[1] List All Claims");
+            System.out.println("[2] View Claim Details");
+            System.out.println("[3] Add New Claim");
+            System.out.println("[4] Update Claim");
+            System.out.println("[5] Delete Claim");
+            System.out.println("[6] Exit");
+            System.out.print("Choose an option: ");
+
+            String input = scanner.nextLine();
+            int choice;
+            try {
+                choice = Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("\n※ Invalid choice ※\n");
+                continue;
+            }
+            switch (choice) {
+                case 1:
+                    // List All Claims
+                    break;
+                case 2:
+                    // View Claim Details
+                    break;
+                case 3:
+                    addNewClaim(scanner);
+                    break;
+                case 4:
+                    // update Claim
+                    // 이거 내일 목
+                    break;
+                case 5:
+                    // delete claim
+                    // 이거 오늘 수
+                    break;
+                case 6:
+                    return;
+                default:
+                    System.out.println("\n※ Invalid choice ※");
+                    break;
+            }}}
 
     // Main-[3] Profile
     public void Profile() throws IOException {
@@ -236,17 +286,16 @@ public class Main {
         // [3] Update Customer Details
         public static void updateCustomerInfo() {
             Scanner scanner = new Scanner(System.in);
-            System.out.println("Enter customer ID:");
-            String customerId = scanner.nextLine();
-            String customersDirectory = "src/Data/Customers/";
-            String customerFileName = findCustomerFileById(customerId, customersDirectory);
+            System.out.println("\n-Enter customer ID:");
+            String customerId = scanner.nextLine().trim();
+            Path customerFilePath = findCustomerFileById(customerId);
 
-            if (customerFileName.isEmpty()) {
-                System.out.println("Customer file not found.");
+            if (customerFilePath == null) {
+                System.out.println("\n※ Customer file not found ※");
                 return;
             }
 
-            String customerName = extractCustomerNameFromFileName(customerFileName);
+            String customerName = extractCustomerNameFromFileName(customerFilePath.getFileName().toString());
 
             while (true) {
                 System.out.println("\nWhat information you want to update?\n" +
@@ -258,41 +307,36 @@ public class Main {
                 int choice = scanner.nextInt();
                 scanner.nextLine(); // Consume newline left-over
 
-                boolean success;
                 switch (choice) {
                     case 1:
+                        updateDependents(customerId, customerName, customerFilePath, scanner, choice == 2);
+                        break;
                     case 2:
-                        success = updateDependents(customerId, customerName, customerFileName, scanner, customersDirectory, choice == 2);
+                        updateAllDependents(customerId, customerName, customerFilePath, scanner);
                         break;
                     case 3:
-                        success = updateExpirationDate(customerFileName, scanner, customersDirectory);
+                        updateExpirationDate(customerFilePath, scanner);
                         break;
                     case 4:
                         return;
                     default:
                         System.out.println("\n※ Invalid option ※");
-                        success = false;
                         break;
-                }
-
-                if (!success) {
-                    System.out.println("\nFailed to update customer info.\n");
                 }
             }
         }
 
-    private static String findCustomerFileById(String customerId, String customersDirectory) {
+    private static Path findCustomerFileById(String customerId) {
+        String customersDirectory = "src/Data/Customers/";
         try (Stream<Path> paths = Files.walk(Paths.get(customersDirectory))) {
-            Optional<String> result = paths
+            return paths
                     .filter(Files::isRegularFile)
-                    .map(Path::getFileName)
-                    .map(Path::toString)
-                    .filter(f -> f.startsWith(customerId + "_"))
-                    .findFirst();
-            return result.orElse("");
+                    .filter(f -> f.getFileName().toString().startsWith(customerId + "_"))
+                    .findFirst()
+                    .orElse(null);
         } catch (IOException e) {
             System.out.println("\n※ Fail to find customer files ※\n");
-            return "";
+            return null;
         }
     }
 
@@ -300,133 +344,204 @@ public class Main {
         return fileName.substring(fileName.indexOf('_') + 1, fileName.lastIndexOf('.'));
     }
 
-    private static boolean updateDependents(String customerId, String customerName, String customerFileName, Scanner scanner, String customersDirectory, boolean replace) {
-        System.out.println("\n- Enter dependents' IDs (e.g., c1000001, c1000002):");
-        String[] dependentIds = scanner.nextLine().split(",\\s*");
+    private static void updateDependents(String customerId, String customerName, Path customerFilePath, Scanner scanner, boolean replace) {
+        System.out.println("\n- Enter dependents' IDs (comma separated, leave blank if none):");
+        String dependentsInput = scanner.nextLine().trim();
+        List<String> dependentIds = Arrays.asList(dependentsInput.split(",")).stream().map(String::trim).collect(Collectors.toList());
 
-        // Gather all dependents' names and IDs for mutual update.
-        Map<String, String> allDependents = new HashMap<>();
-        for (String id : dependentIds) {
-            if (!id.trim().isEmpty()) {
-                String dependentFileName = findCustomerFileById(id.trim(), customersDirectory);
-                if (!dependentFileName.isEmpty()) {
-                    String dependentName = extractCustomerNameFromFileName(dependentFileName);
-                    allDependents.put(id.trim(), dependentName);
+        if (!dependentIds.isEmpty()) {
+            try {
+                List<String> lines = Files.readAllLines(customerFilePath);
+                boolean foundDependents = false;
+                for (int i = 0; i < lines.size(); i++) {
+                    if (lines.get(i).startsWith("Dependents:")) {
+                        foundDependents = true;
+                        String existingDependents = lines.get(i).substring("Dependents: ".length());
+                        String newDependentsList = dependentIds.stream()
+                                .map(id -> {
+                                    Path dependentFilePath = findCustomerFileById(id);
+                                    if (dependentFilePath != null) {
+                                        updatePolicyHolderInDependentFile(id, customerId, customerName);
+                                        return extractCustomerNameFromFileName(dependentFilePath.getFileName().toString()) + "(" + id + ")";
+                                    } else {
+                                        System.out.println("\n※ Customer information does not exist: " + id +" ※");
+                                        return null;
+                                    }
+                                })
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.joining(", "));
+
+                        if (!existingDependents.isEmpty()) {
+                            newDependentsList = existingDependents + ", " + newDependentsList;
+                        }
+                        lines.set(i, "Dependents: " + newDependentsList);
+                        break;
+                    }
+                }
+                if (!foundDependents) {
+                    String newDependents = dependentIds.stream()
+                            .map(id -> extractCustomerNameFromFileName(findCustomerFileById(id).getFileName().toString()) + "(" + id + ")")
+                            .collect(Collectors.joining(", "));
+                    lines.add("Dependents: " + newDependents);
+                }
+                Files.write(customerFilePath, lines);
+                System.out.println("\nDependents updated successfully !");
+            } catch (IOException e) {
+                System.out.println("\n※ Fail to update dependents ※\n");
+            }
+        } else {
+            System.out.println("\n※ No dependents updated ※");
+        }
+    }
+
+    private static void updatePolicyHolderInDependentFile(String dependentId, String policyHolderId, String policyHolderName) {
+        Path dependentFilePath = findCustomerFileById(dependentId);
+        if (dependentFilePath != null) {
+            try {
+                List<String> lines = Files.readAllLines(dependentFilePath);
+                boolean foundPolicyHolder = false;
+                for (int i = 0; i < lines.size(); i++) {
+                    if (lines.get(i).startsWith("Policy holder:")) {
+                        lines.set(i, "Policy holder: " + policyHolderName + "(" + policyHolderId + ")");
+                        foundPolicyHolder = true;
+                        break;
+                    }
+                }
+                if (!foundPolicyHolder) {
+                    lines.add("Policy holder: " + policyHolderName + "(" + policyHolderId + ")");
+                }
+                Files.write(dependentFilePath, lines);
+                System.out.println("Policy holder updated for dependent ID: " + dependentId);
+            } catch (IOException e) {
+                System.err.println("\n※ Failed to update policy holder in dependent's file: " + e.getMessage() + " ※");
+            }
+        } else {
+            System.out.println("\n※ No file found for dependent ID: " + dependentId + " ※");
+        }
+    }
+
+    // updateCustomer-[2] update all dependents
+    private static void updateAllDependents(String customerId, String customerName, Path customerFilePath, Scanner scanner) {
+        System.out.println("\n- Enter new dependents' IDs (comma separated, leave blank to remove all):");
+        String dependentsInput = scanner.nextLine().trim();
+
+        List<String> dependentIds = new ArrayList<>();
+
+        if (dependentsInput.isEmpty()) {
+            System.out.println("\nAre you sure delete the list of all dependents? Type 'yes' or 'no':");
+            String confirmation = scanner.nextLine().trim();
+            if (!confirmation.equalsIgnoreCase("yes")) {
+                System.out.println("\n※ Deletion of Dependent has been cancelled ※");
+                return; // No confirmation, return to manageCustomer
+            }
+        } else {
+            dependentIds = Arrays.asList(dependentsInput.split(","))
+                    .stream().map(String::trim).collect(Collectors.toList());
+        }
+
+        try {
+            List<String> lines = Files.readAllLines(customerFilePath);
+            List<String> updatedLines = new ArrayList<>();
+            List<String> oldDependents = new ArrayList<>();
+            boolean foundDependents = false;
+
+            for (String line : lines) {
+                if (line.startsWith("Dependents:")) {
+                    foundDependents = true;
+                    if (!line.equals("Dependents:")) {
+                        oldDependents = Arrays.asList(line.substring("Dependents: ".length()).split(", "))
+                                .stream().map(dep -> dep.substring(dep.indexOf("(") + 1, dep.indexOf(")")))
+                                .collect(Collectors.toList());
+                    }
+                    String newDependentsList = dependentIds.stream()
+                            .map(id -> {
+                                Path dependentFilePath = findCustomerFileById(id);
+                                if (dependentFilePath != null) {
+                                    updatePolicyHolderInDependentFile(id, customerId, customerName);
+                                    return extractCustomerNameFromFileName(dependentFilePath.getFileName().toString()) + "(" + id + ")";
+                                } else {
+                                    System.out.println("\n※ Customer information does not exist: " + id + " ※");
+                                    return null;
+                                }
+                            })
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.joining(", "));
+
+                    updatedLines.add("Dependents: " + newDependentsList);
                 } else {
-                    System.out.println("\n※ No customer record found for ID: " + id + " ※");
-                    return false;
-                }
-            }
-        }
-
-        // Update the current customer's file with new/updated dependents.
-        if (!updateCurrentCustomerDependents(customerFileName, customersDirectory, allDependents, replace)) {
-            System.out.println("\n※ Fail to update dependents for customer ID: " + customerId + " ※");
-            return false;
-        }
-
-        // Update each dependent's file to include all other dependents and the current customer.
-        for (String dependentId : allDependents.keySet()) {
-            if (!updateDependentFiles(dependentId, allDependents, customerId, customerName, customersDirectory)) {
-                System.out.println("\n※ Fail to update dependent files for ID: " + dependentId + " ※");
-                return false;
-            }
-        }
-
-        System.out.println("\nDependents updated successfully !");
-        return true;
-    }
-
-    private static boolean updateCurrentCustomerDependents(String customerFileName, String customersDirectory, Map<String, String> allDependents, boolean replace) {
-        try {
-            String filePath = customersDirectory + customerFileName;
-            List<String> lines = Files.readAllLines(Paths.get(filePath));
-            boolean foundDependents = false;
-
-            for (int i = 0; i < lines.size(); i++) {
-                if (lines.get(i).startsWith("Dependents:")) {
-                    foundDependents = true;
-                    String newDependentsList = allDependents.entrySet().stream()
-                            .map(entry -> entry.getValue() + "(" + entry.getKey() + ")")
-                            .collect(Collectors.joining(", "));
-                    lines.set(i, "Dependents: " + (replace ? newDependentsList : lines.get(i).substring("Dependents: ".length()) + ", " + newDependentsList));
-                    break;
+                    updatedLines.add(line);
                 }
             }
 
-            if (!foundDependents) {
-                lines.add("Dependents: " + allDependents.entrySet().stream()
-                        .map(entry -> entry.getValue() + "(" + entry.getKey() + ")")
-                        .collect(Collectors.joining(", ")));
+            if (!foundDependents && !dependentIds.isEmpty()) {
+                // Add the new Dependents section if it wasn't found and we have new dependents to add
+                String newDependentsList = dependentIds.stream()
+                        .map(id -> extractCustomerNameFromFileName(findCustomerFileById(id).getFileName().toString()) + "(" + id + ")")
+                        .collect(Collectors.joining(", "));
+                updatedLines.add("Dependents: " + newDependentsList);
             }
 
-            Files.write(Paths.get(filePath), lines);
-            return true;
+            Files.write(customerFilePath, updatedLines);
+
+            // Update old dependents to remove this customer as their policy holder
+            for (String depId : oldDependents) {
+                removePolicyHolderFromDependent(depId, customerId);
+            }
+
+            System.out.println("\nDependent information updated successfully !");
         } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+            System.out.println("\n※ Failed to update dependents information ※");
         }
     }
 
-    private static boolean updateDependentFiles(String dependentId, Map<String, String> allDependents, String customerId, String customerName, String customersDirectory) {
-        try {
-            String dependentFileName = findCustomerFileById(dependentId, customersDirectory);
-            if (dependentFileName.isEmpty()) return false;
+    private static void removePolicyHolderFromDependent(String dependentId, String customerId) {
+        Path dependentFilePath = findCustomerFileById(dependentId);
+        if (dependentFilePath != null) {
+            try {
+                List<String> lines = Files.readAllLines(dependentFilePath);
+                String dependentName = extractCustomerNameFromFileName(dependentFilePath.getFileName().toString());
 
-            String filePath = customersDirectory + dependentFileName;
-            List<String> lines = Files.readAllLines(Paths.get(filePath));
-            boolean foundDependents = false;
-
-            for (int i = 0; i < lines.size(); i++) {
-                if (lines.get(i).startsWith("Dependents:")) {
-                    foundDependents = true;
-                    String newDependentsList = allDependents.entrySet().stream()
-                            .filter(entry -> !entry.getKey().equals(dependentId)) // Exclude the current dependent
-                            .map(entry -> entry.getValue() + "(" + entry.getKey() + ")")
-                            .collect(Collectors.joining(", "));
-                    if (!newDependentsList.isEmpty()) newDependentsList += ", ";
-                    lines.set(i, "Dependents: " + newDependentsList + customerName + "(" + customerId + ")");
-                    break;
+                for (int i = 0; i < lines.size(); i++) {
+                    if (lines.get(i).startsWith("Policy holder:")) {
+                        lines.set(i, "Policy holder: " + dependentName + "(" + dependentId + ")");
+                        break;
+                    }
                 }
+                Files.write(dependentFilePath, lines);
+                System.out.println("\nPolicy holder updated to self for dependent ID: " + dependentId);
+            } catch (IOException e) {
+                System.err.println("\n※ Failed to update policy holder in dependent's file: " + e.getMessage() + " ※");
             }
-
-            if (!foundDependents) {
-                lines.add("Dependents: " + allDependents.entrySet().stream()
-                        .filter(entry -> !entry.getKey().equals(dependentId)) // Exclude the current dependent
-                        .map(entry -> entry.getValue() + "(" + entry.getKey() + ")")
-                        .collect(Collectors.joining(", ")) + ", " + customerName + "(" + customerId + ")");
-            }
-
-            Files.write(Paths.get(filePath), lines);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+        } else {
+            System.out.println("\n※ No file found for dependent ID: " + dependentId + " ※");
         }
     }
 
-    private static boolean updateExpirationDate(String fileName, Scanner scanner, String customersDirectory) {
-        String filePath = customersDirectory + fileName;
+    // updateCustomer-[3] update expiration date
+    private static void updateExpirationDate(Path customerFilePath, Scanner scanner) {
         System.out.println("\n- Enter new expiration date (YYYY-MM-DD):");
         String newDate = scanner.nextLine();
-
         try {
-            List<String> lines = Files.readAllLines(Paths.get(filePath));
+            List<String> lines = Files.readAllLines(customerFilePath);
+            boolean found = false;
             for (int i = 0; i < lines.size(); i++) {
                 if (lines.get(i).startsWith("Expiration date:")) {
                     lines.set(i, "Expiration date: " + newDate);
+                    found = true;
                     break;
                 }
             }
-            Files.write(Paths.get(filePath), lines);
-            System.out.println("\nExpiration date updated successfully !");
+            if (!found) {
+                lines.add("Expiration date: " + newDate);
+            }
+            Files.write(customerFilePath, lines);
+            System.out.println("\nExpiration date updated successfully!");
         } catch (IOException e) {
             System.out.println("\n※ Fail to update the expiration date ※\n");
         }
-        return false;
     }
 
-        // [4] Add New Customer
+    // [4] Add New Customer
         private static void addNewCustomer() {
             Scanner scanner = new Scanner(System.in);
             UniqueIdGenerator idGenerator = UniqueIdGenerator.getInstance();
@@ -514,14 +629,12 @@ public class Main {
 
             for (String inputId : inputIds) {
                 inputId = inputId.trim();
-                // 이미 Policy Holder인지 확인
                 if (isPolicyHolder(inputId, CUSTOMERS_DIR_PATH) && !inputId.equals(currentCustomerId)) {
                     System.out.println("\n※ The person with ID " + inputId + " is already a policy holder ※");
                     isValidInput = false;
                     break;
                 }
 
-                // Dependent의 이름 가져오기
                 String dependentName = getCustomerNameById(inputId, CUSTOMERS_DIR_PATH);
                 if (!dependentName.isEmpty()) {
                     validatedDependentsIds.add(dependentName + "(" + inputId + ")");
@@ -680,6 +793,187 @@ public class Main {
             manageCustomer(); //Invalid input handling
         }
     }
+
+    // Main-[2] Manage Claim
+        // [1] List All Cliam
+
+        // [2] View Claim Details
+
+        // [3] Add New Claim
+        public static void addNewClaim(Scanner scanner) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            dateFormat.setLenient(false);
+
+            String claimsFilePath = "src/Data/Claims/ClaimList.txt";
+            String customersDirectory = "src/Data/Customers/";
+
+            try {
+                System.out.print("Enter Insurance person ID (e.g., c1000001): ");
+                String personId = scanner.nextLine();
+
+                File directory = new File(customersDirectory);
+                FilenameFilter filter = (dir, name) -> name.startsWith(personId + "_");
+                File[] matchingFiles = directory.listFiles(filter);
+
+                if (matchingFiles == null || matchingFiles.length == 0) {
+                    throw new FileNotFoundException("Customer file not found for ID: " + personId + ". Please check the ID and try again.");
+                }
+                File customerFile = matchingFiles[0];
+
+                String customerDetails = new String(Files.readAllBytes(customerFile.toPath()));
+                String[] lines = customerDetails.split("\n");
+                String customerName = lines[1].split(": ")[1].trim();
+                String insuranceCardNumber = lines[4].split(": ")[1].trim();
+
+                System.out.print("Enter Claim date (yyyy-MM-dd): ");
+                String claimDateStr = scanner.nextLine();
+                Date claimDate = dateFormat.parse(claimDateStr);
+                if (!isValidClaimDate(claimDate, claimsFilePath, dateFormat)) {
+                    throw new IllegalArgumentException("Claim date must be today or in the future, and after the most recent claim date.");
+                }
+
+                System.out.print("Enter Exam date (yyyy-MM-dd): ");
+                String examDateStr = scanner.nextLine();
+                Date examDate = dateFormat.parse(examDateStr);
+                if (examDate.after(claimDate)) {
+                    throw new IllegalArgumentException("Exam date cannot be after the claim date.");
+                }
+
+                System.out.print("Enter Claim amount: ");
+                String claimAmount = scanner.nextLine();
+
+                System.out.print("Enter Bank name: ");
+                String bankName = scanner.nextLine();
+
+                System.out.print("Enter Bank account: ");
+                String bankAccount = scanner.nextLine();
+
+                String claimId = UniqueIdGenerator.generateClaimId(); // Assume this method is implemented elsewhere
+
+                // Create the new claim record with "NEW" status
+                String newClaimRecord = String.format("%s | %s | %s | %s | %s | %s | %s - %s - %s | NEW",
+                        claimId, claimDateStr, examDateStr, customerName, insuranceCardNumber, claimAmount,
+                        bankName, customerName, bankAccount);
+
+                // Update all existing claims' status based on the new claim date before appending the new claim
+                updateAllClaimsStatus(claimsFilePath, customersDirectory, claimDateStr, dateFormat);
+
+                // Append the new claim record
+                Files.write(Paths.get(claimsFilePath), (newClaimRecord + "\n").getBytes(), StandardOpenOption.APPEND);
+
+                // Also, update the specific customer's file with the new claim record
+                updateCustomerFileWithClaim(customerFile, newClaimRecord);
+
+                System.out.println("Claim added successfully.");
+            } catch (ParseException e) {
+                System.err.println("Error parsing date: " + e.getMessage());
+            } catch (FileNotFoundException e) {
+                System.err.println(e.getMessage());
+            } catch (IOException e) {
+                System.err.println("File handling error: " + e.getMessage());
+            } catch (IllegalArgumentException e) {
+                System.err.println("Validation error: " + e.getMessage());
+            } catch (Exception e) {
+                System.err.println("Unexpected error occurred: " + e.getMessage());
+            }
+        }
+
+    private static void updateExistingClaimsStatus(String claimsFilePath, String newClaimDateStr, SimpleDateFormat dateFormat) throws IOException, ParseException {
+        Path path = Paths.get(claimsFilePath);
+        List<String> lines = Files.readAllLines(path);
+        List<String> updatedLines = new ArrayList<>();
+
+        for (String line : lines) {
+            if (!line.trim().isEmpty() && line.contains("|")) {
+                String[] parts = line.split(" \\| ");
+                String claimDateStr = parts[1].trim();
+                Date claimDate = dateFormat.parse(claimDateStr);
+                Date newClaimDate = dateFormat.parse(newClaimDateStr);
+
+                if (!claimDate.after(newClaimDate) && line.endsWith("NEW")) { // If the claim date is not after the new claim date
+                    line = line.replaceFirst("NEW", "Processing");
+                }
+            }
+            updatedLines.add(line);
+        }
+        Files.write(path, updatedLines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    private static void updateCustomerFileStatus(File customerFile, String newClaimDateStr, SimpleDateFormat dateFormat) throws IOException, ParseException {
+        List<String> lines = Files.readAllLines(customerFile.toPath());
+        boolean isClaimListSection = false;
+        List<String> updatedLines = new ArrayList<>();
+
+        for (String line : lines) {
+            if (line.startsWith("Claim List:")) {
+                isClaimListSection = true;
+                updatedLines.add(line);
+                continue;
+            }
+
+            if (isClaimListSection && line.contains("|")) {
+                String[] parts = line.split(" \\| ");
+                if (parts.length > 1) {
+                    String claimDateStr = parts[1].trim();
+                    Date claimDate = dateFormat.parse(claimDateStr);
+
+                    if (!claimDate.after(dateFormat.parse(newClaimDateStr)) && line.endsWith("NEW")) {
+                        // Update status to "Processing" if the claim date is not after the new claim date
+                        line = line.replaceFirst("NEW", "Processing");
+                    }
+                }
+            }
+            updatedLines.add(line);
+        }
+
+        Files.write(customerFile.toPath(), updatedLines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    private static boolean isValidClaimDate(Date claimDate, String claimsFilePath, SimpleDateFormat dateFormat) throws IOException, ParseException {
+        List<String> claims = Files.readAllLines(Path.of(claimsFilePath));
+        Date lastDate = new Date(0); // Initialize to a very old date
+        for (String claim : claims) {
+            String[] parts = claim.split(" \\| ");
+            Date date = dateFormat.parse(parts[1].trim());
+            if (date.after(lastDate)) {
+                lastDate = date;
+            }
+        }
+        // The claim date is valid if it's today or after the most recent claim date
+        return !claimDate.before(lastDate) && !claimDate.before(new Date());
+    }
+
+    private static void updateAllClaimsStatus(String claimsFilePath, String customersDirectory, String newClaimDateStr, SimpleDateFormat dateFormat) throws IOException, ParseException {
+        // Update the status in ClaimList.txt
+        updateExistingClaimsStatus(claimsFilePath, newClaimDateStr, dateFormat);
+
+        // Update the status in all customer files in the Customers directory
+        File directory = new File(customersDirectory);
+        for (File file : directory.listFiles()) {
+            updateCustomerFileStatus(file, newClaimDateStr, dateFormat);
+        }
+    }
+
+    private static void updateCustomerFileWithClaim(File customerFile, String newClaimRecord) throws IOException {
+        // This method appends the new claim record under "Claim List:" in the customer's file
+        List<String> fileContent = new ArrayList<>(Files.readAllLines(customerFile.toPath(), StandardCharsets.UTF_8));
+        boolean claimListFound = false;
+        for (int i = 0; i < fileContent.size(); i++) {
+            if ("Claim List:".equals(fileContent.get(i).trim())) {
+                claimListFound = true;
+                fileContent.add(i + 1, newClaimRecord);
+                break;
+            }
+        }
+        if (!claimListFound) {
+            fileContent.addAll(Arrays.asList("Claim List:", newClaimRecord));
+        }
+        Files.write(customerFile.toPath(), fileContent, StandardCharsets.UTF_8, StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+        // [4] Update Claim
+
+        // [5] Delete Claim
 
     // Main-[3] Profile
     private void listAllUsers() throws IOException {
