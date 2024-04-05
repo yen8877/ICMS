@@ -3,26 +3,19 @@ package src;
 import java.io.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.nio.file.StandardOpenOption;
 
-
-import src.Super.Customer;
-import src.Super.InsuranceCard;
 import src.Super.UniqueIdGenerator;
 import src.UserInterface.Login;
 import static src.UserInterface.Login.*;
-import src.Super.Claim;
-import src.Super.Claim.ClaimStatus;
-import src.Super.Claim.ReceiverBankingInfo;
+
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -76,7 +69,7 @@ public class Main {
                 choice = Integer.parseInt(input);
             } catch (NumberFormatException e) {
                 System.out.println("\n※ Invalid choice ※\n");
-                continue; // 다음 반복으로 넘어감
+                continue;
             }
             switch (choice) {
                 case 1:
@@ -168,7 +161,7 @@ public class Main {
                     listAllClaims();
                     break;
                 case 2:
-                    // View Claim Details
+                    viewClaimDetails(scanner);
                     break;
                 case 3:
                     addNewClaim(scanner);
@@ -178,8 +171,7 @@ public class Main {
                     // 이거 내일 목
                     break;
                 case 5:
-                    // delete claim
-                    // 이거 오늘 수
+                    deleteClaim(scanner);
                     break;
                 case 6:
                     return;
@@ -518,9 +510,25 @@ public class Main {
     }
 
     // updateCustomer-[3] update expiration date
+    private static boolean isValidDate(String date) {
+        String regex = "\\d{4}-\\d{2}-\\d{2}";
+        return Pattern.matches(regex, date);
+    }
+
     private static void updateExpirationDate(Path customerFilePath, Scanner scanner) {
-        System.out.println("\n- Enter new expiration date (YYYY-MM-DD):");
-        String newDate = scanner.nextLine();
+        boolean validDate = false;
+        String newDate = "";
+
+        while (!validDate) {
+            System.out.println("\n- Enter new expiration date (YYYY-MM-DD):");
+            newDate = scanner.nextLine();
+            if (isValidDate(newDate)) {
+                validDate = true;
+            } else {
+                System.out.println("\n※ Invaild Input ※");
+            }
+        }
+
         try {
             List<String> lines = Files.readAllLines(customerFilePath);
             boolean found = false;
@@ -746,11 +754,11 @@ public class Main {
 
                             Files.write(path, lines);
                         } catch (IOException e) {
-                            System.err.println("\n※ Failed to update the policy holder's file for new dependent: " + e.getMessage() +" ※");
+                            System.err.println("\n※ Failed to update the policy holder's file for new dependent ※");
                         }
                     });
         } catch (IOException e) {
-            System.err.println("\n※ Fail to update dependent information: " + e.getMessage() + " ※");
+            System.err.println("\n※ Fail to update dependent information ※");
         }
     }
 
@@ -780,7 +788,7 @@ public class Main {
         if ("yes".equalsIgnoreCase(confirmation)) {
             try {
                 Files.delete(path);
-                System.out.println("\n" + path.getFileName() + " has been successfully deleted.");
+                System.out.println("\n" + path.getFileName() + " has been successfully deleted !");
             } catch (IOException e) {
                 System.err.println("\n※ Failed to delete data file ※\n※ Please Try Again ※");
                 e.printStackTrace();
@@ -832,27 +840,25 @@ public class Main {
             }
         }
     }
-
+    // [1] Claims List of One Customer
     private static boolean printCustomerClaims(String customerId) throws IOException {
         Path dirPath = Paths.get("src/Data/Customers");
         boolean fileFound = false;
 
         try (Stream<Path> paths = Files.walk(dirPath)) {
-            // 이 코드는 지정된 디렉토리에서 모든 파일을 탐색합니다.
-            // 파일 이름이 고객 아이디로 시작하는 경우 해당 파일을 찾아 처리합니다.
             fileFound = paths
                     .filter(Files::isRegularFile)
                     .filter(path -> path.getFileName().toString().startsWith(customerId))
-                    .findFirst() // 첫 번째 일치하는 파일을 찾습니다.
+                    .findFirst()
                     .map(path -> {
                         try {
                             printClaimsFromFile(path);
-                            return true; // 파일 처리 성공
+                            return true;
                         } catch (IOException e) {
-                            System.out.println("An error occurred while reading the file: " + e.getMessage());
-                            return false; // 파일 처리 중 에러 발생
+                            System.out.println("\n※ An error occurred while reading the file ※");
+                            return false;
                         }
-                    }).orElse(false); // 일치하는 파일이 없는 경우
+                    }).orElse(false);
         }
 
         return fileFound;
@@ -862,29 +868,84 @@ public class Main {
         BufferedReader reader = new BufferedReader(new FileReader(filePath.toFile()));
         String line;
         boolean claimSection = false;
+        boolean foundClaims = false;
 
         while ((line = reader.readLine()) != null) {
             if (line.startsWith("Claim List:")) {
                 claimSection = true;
                 continue;
             }
-            if (claimSection) {
+            if (claimSection && !line.trim().isEmpty()) {
                 System.out.println(line);
+                foundClaims = true;
             }
         }
         reader.close();
+
+        if (claimSection && !foundClaims) {
+            System.out.println("\n※ Claim does not exist ※");
+        }
     }
 
     private static void printAllClaims() throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader("src/Data/Claims/ClaimList.txt"));
         String line;
+        boolean foundClaims = false;
 
         while ((line = reader.readLine()) != null) {
             System.out.println(line);
+            foundClaims = true;
         }
         reader.close();
+
+        if (!foundClaims) {
+            System.out.println("\n※ Claim does not exist ※");
+        }
     }
+
         // [2] View Claim Details
+        public static void viewClaimDetails(Scanner scanner) {
+            String claimsFilePath = "src/Data/Claims/ClaimList.txt";
+
+            try {
+                System.out.print("\n- Enter Claim Id (e.g., f0000000001): ");
+                String claimId = scanner.nextLine();
+
+                Path path = Paths.get(claimsFilePath);
+                boolean claimFound = false;
+
+                try (Scanner fileScanner = new Scanner(path)) {
+                    while (fileScanner.hasNextLine()) {
+                        String line = fileScanner.nextLine();
+                        if (line.startsWith(claimId)) {
+                            // Split the line to extract claim details
+                            String[] details = line.split(" \\| ");
+                            System.out.println("\n[ Claim Detail ]");
+                            System.out.println("Claim Id: " + details[0]);
+                            System.out.println("Status: " + details[7].trim());
+                            System.out.println("Exam Date: " + details[2]);
+                            System.out.println("Claim Date: " + details[1]);
+                            System.out.println("Insured Person: " + details[3]);
+                            System.out.println("Insurance Card: " + details[4]);
+                            System.out.println("Claim Amount: " + details[5]);
+                            System.out.println("Bank Info: " + details[6]);
+
+                            claimFound = true;
+                            break;
+                        }
+                    }
+
+                    if (!claimFound) {
+                        System.out.println("\n※ Claim Id " + claimId + " not found ※");
+                    }
+                } catch (IOException e) {
+                    System.err.println("\n※ Error reading the claims file ※");
+                }
+
+            } catch (Exception e) {
+                System.err.println("\n※ Unexpected error occurred ※");
+            }
+        }
 
         // [3] Add New Claim
         public static void addNewClaim(Scanner scanner) {
@@ -895,7 +956,7 @@ public class Main {
             String customersDirectory = "src/Data/Customers/";
 
             try {
-                System.out.print("Enter Insurance person ID (e.g., c1000001): ");
+                System.out.print("- Enter Insurance person ID (e.g., c1000001): ");
                 String personId = scanner.nextLine();
 
                 File directory = new File(customersDirectory);
@@ -903,7 +964,7 @@ public class Main {
                 File[] matchingFiles = directory.listFiles(filter);
 
                 if (matchingFiles == null || matchingFiles.length == 0) {
-                    throw new FileNotFoundException("Customer file not found for ID: " + personId + ". Please check the ID and try again.");
+                    throw new FileNotFoundException("\n※ Customer file not found for ID: " + personId + ".\n※ Please check the ID and try again ※");
                 }
                 File customerFile = matchingFiles[0];
 
@@ -912,35 +973,35 @@ public class Main {
                 String customerName = lines[1].split(": ")[1].trim();
                 String insuranceCardNumber = lines[4].split(": ")[1].trim();
 
-                System.out.print("Enter Claim date (yyyy-MM-dd): ");
+                System.out.print("- Enter Claim date (yyyy-MM-dd): ");
                 String claimDateStr = scanner.nextLine();
                 Date claimDate = dateFormat.parse(claimDateStr);
                 if (!isValidClaimDate(claimDate, claimsFilePath, dateFormat)) {
-                    throw new IllegalArgumentException("Claim date must be today or in the future, and after the most recent claim date.");
+                    throw new IllegalArgumentException("\n※ Claim date must be today or in the future, and after the most recent claim date ※");
                 }
 
-                System.out.print("Enter Exam date (yyyy-MM-dd): ");
+                System.out.print("- Enter Exam date (yyyy-MM-dd): ");
                 String examDateStr = scanner.nextLine();
                 Date examDate = dateFormat.parse(examDateStr);
                 if (examDate.after(claimDate)) {
-                    throw new IllegalArgumentException("Exam date cannot be after the claim date.");
+                    throw new IllegalArgumentException("\n※ Exam date cannot be after the claim date ※");
                 }
 
-                System.out.print("Enter Claim amount: ");
+                System.out.print("- Enter Claim amount: ");
                 String claimAmount = scanner.nextLine();
 
-                System.out.print("Enter Bank name: ");
+                System.out.print("- Enter Bank name: ");
                 String bankName = scanner.nextLine();
 
-                System.out.print("Enter Bank account: ");
+                System.out.print("- Enter Bank account: ");
                 String bankAccount = scanner.nextLine();
 
                 String claimId = UniqueIdGenerator.generateClaimId(); // Assume this method is implemented elsewhere
 
                 // Create the new claim record with "NEW" status
-                String newClaimRecord = String.format("%s | %s | %s | %s | %s | %s | %s - %s - %s | NEW",
-                        claimId, claimDateStr, examDateStr, customerName, insuranceCardNumber, claimAmount,
-                        bankName, customerName, bankAccount);
+                String newClaimRecord = String.format("%s | %s | %s | %s(%s) | %s | %s | %s - %s - %s | NEW",
+                        claimId, claimDateStr, examDateStr, customerName, personId, insuranceCardNumber, claimAmount,
+                        bankName, customerName, personId, bankAccount);
 
                 // Update all existing claims' status based on the new claim date before appending the new claim
                 updateAllClaimsStatus(claimsFilePath, customersDirectory, claimDateStr, dateFormat);
@@ -951,17 +1012,17 @@ public class Main {
                 // Also, update the specific customer's file with the new claim record
                 updateCustomerFileWithClaim(customerFile, newClaimRecord);
 
-                System.out.println("Claim added successfully.");
+                System.out.println("\nClaim added successfully !");
             } catch (ParseException e) {
-                System.err.println("Error parsing date: " + e.getMessage());
+                System.err.println("\n※ Error parsing date: " + e.getMessage() + " ※");
             } catch (FileNotFoundException e) {
                 System.err.println(e.getMessage());
             } catch (IOException e) {
-                System.err.println("File handling error: " + e.getMessage());
+                System.err.println("※ File handling error ※");
             } catch (IllegalArgumentException e) {
-                System.err.println("Validation error: " + e.getMessage());
+                System.err.println("※ Validation error ※");
             } catch (Exception e) {
-                System.err.println("Unexpected error occurred: " + e.getMessage());
+                System.err.println("※ Unexpected error occurred ※");
             }
         }
 
@@ -1061,6 +1122,81 @@ public class Main {
         // [4] Update Claim
 
         // [5] Delete Claim
+        public static void deleteClaim(Scanner scanner) {
+            String claimsFilePath = "src/Data/Claims/ClaimList.txt";
+            String customersDirectory = "src/Data/Customers/";
+
+            try {
+                System.out.print("\n- Enter Claim Id to delete (e.g., f0000000001): ");
+                String claimId = scanner.nextLine();
+
+                Path path = Paths.get(claimsFilePath);
+                List<String> lines = Files.readAllLines(path);
+                List<String> updatedLines = new ArrayList<>();
+
+                boolean claimFound = false;
+                boolean isDeletable = false;
+                String customerID = null;
+
+                for (String line : lines) {
+                    if (line.startsWith(claimId + " |")) {
+                        claimFound = true;
+                        String[] parts = line.split(" \\| ");
+                        String status = parts[7].trim();
+                        if (!"done".equalsIgnoreCase(status)) {
+                            isDeletable = true;
+                            String insuredPerson = parts[3].trim();
+                            customerID = insuredPerson.substring(insuredPerson.lastIndexOf('(') + 1, insuredPerson.lastIndexOf(')')); // Extracting the customerID
+                        } else {
+                            System.out.println("\n※ Claim Id " + claimId + " with status 'done' cannot be deleted ※");
+                            return;
+                        }
+                    } else {
+                        updatedLines.add(line);
+                    }
+                }
+
+                if (claimFound && isDeletable) {
+                    Files.write(path, updatedLines);
+                    System.out.println("\nClaim Id " + claimId + " has been deleted from ClaimList.txt!");
+                } else if (!claimFound) {
+                    System.out.println("\n※ Claim Id " + claimId + " not found ※");
+                    return;
+                }
+
+                // Delete the claim from the customer's file if the customerID was found
+                if (customerID != null) {
+                    String customerFileName = customerID + "_*.txt";
+                    try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(customersDirectory), customerFileName)) {
+                        for (Path entry : stream) {
+                            List<String> customerLines = Files.readAllLines(entry);
+                            List<String> newCustomerLines = new ArrayList<>();
+                            boolean claimListSection = false;
+
+                            for (String customerLine : customerLines) {
+                                if (customerLine.startsWith("Claim List:")) {
+                                    claimListSection = true;
+                                }
+                                if (!claimListSection || !customerLine.contains(claimId)) {
+                                    newCustomerLines.add(customerLine);
+                                }
+                            }
+
+                            Files.write(entry, newCustomerLines);
+                            System.out.println("Claim Id " + claimId + " has been deleted from the customer's file!");
+                            break;
+                        }
+                    } catch (IOException | DirectoryIteratorException e) {
+                        System.err.println("\n※ Error updating the customer's file ※");
+                    }
+                }
+
+            } catch (IOException e) {
+                System.err.println("\n※ Error reading or writing the claims file ※");
+            } catch (Exception e) {
+                System.err.println("\n※ Unexpected error occurred ※");
+            }
+        }
 
     // Main-[3] Profile
     private void listAllUsers() throws IOException {
