@@ -1,5 +1,7 @@
 package src.Super;
-
+/*
+ * @author Han Yeeun - s3912055
+ */
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,22 +21,10 @@ public class Customer {
         this.policyHolder = isPolicyHolder ? this : null;
     }
 
-    public void addDependent(Customer dependent) {
-        dependent.setPolicyHolder(this);
-        this.dependents.add(dependent);
-    }
 
     public void setPolicyHolder(Customer policyHolder) {
         this.policyHolder = policyHolder;
         this.isPolicyHolder = (policyHolder == null || policyHolder.equals(this));
-    }
-
-    public String getPolicyHolderIdentification() {
-        return policyHolder != null ? policyHolder.getFullName() + "(" + policyHolder.getId() + ")" : "None";
-    }
-
-    public String getPolicyHolderId() {
-        return (policyHolder != null && !policyHolder.equals(this)) ? policyHolder.getId() : null;
     }
 
     public String getId() {

@@ -1,10 +1,10 @@
 package src;
-
-import java.io.*;
+/*
+ * @author Han Yeeun - s3912055
+ */
 import java.util.*;
 import java.nio.file.*;
 import java.io.IOException;
-import java.util.function.Function;
 
 import src.Super.Claim;
 import src.Super.ClaimProcessManager;

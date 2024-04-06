@@ -1,4 +1,7 @@
 package src.Super;
+/*
+ * @author Han Yeeun - s3912055
+ */
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -26,8 +29,7 @@ public class ClaimProcessManagerImpl implements ClaimProcessManager {
 
     @Override
     public List<Claim> getAllClaims() {
-        return new ArrayList<>(claims); // 예시 구현입니다.
-    }
+        return new ArrayList<>(claims);}
     @Override
     public boolean printCustomerClaims(String customerId) throws IOException {
         Path dirPath = Paths.get(customersDirectory);

@@ -1,6 +1,7 @@
 package src.Super;
-
-import src.Main;
+/*
+ * @author Han Yeeun - s3912055
+ */
 
 import java.io.IOException;
 import java.nio.file.Files;

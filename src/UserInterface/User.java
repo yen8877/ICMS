@@ -1,5 +1,7 @@
 package src.UserInterface;
-
+/*
+ * @author Han Yeeun - s3912055
+ */
 public class User {
     private String userID;
     private String userPassword;
@@ -15,23 +17,14 @@ public class User {
         return this.userID;
     }
 
-    public void setUserID(String userID) {
-        this.userID = userID;
-    }
 
     public String getUserPassword() {
         return this.userPassword;
     }
 
-    public void setUserPassword(String userPassword) {
-        this.userPassword = userPassword;
-    }
 
     public String getUserName() {
         return this.userName;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
 }
