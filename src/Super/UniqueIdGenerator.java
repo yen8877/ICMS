@@ -44,17 +44,19 @@ public class UniqueIdGenerator {
     }
 
     public static synchronized String generateClaimId() {
-        AtomicLong maxId = new AtomicLong(0); // Use AtomicLong for thread safety
+        final String claimsFilePath = "src/Data/Claims/ClaimList.txt"; // 클레임 파일 경로
+        AtomicLong maxId = new AtomicLong(0);
 
         try {
-            Files.lines(CLAIMS_LIST_PATH)
-                    .map(line -> line.split(" \\| ")[0].trim()) // Extract the ID part
-                    .map(id -> id.substring(1)) // Remove the leading 'f'
-                    .mapToLong(Long::parseLong)
-                    .max()
-                    .ifPresent(max -> maxId.set(max)); // Update the maxId if a max value is present
+            Files.lines(Paths.get(claimsFilePath))
+                    .map(line -> line.split(" \\| ")[0].trim()) // "fid" 부분 추출
+                    .filter(id -> id.startsWith("f")) // "f"로 시작하는 ID만 필터링
+                    .map(id -> id.substring(1)) // "f"를 제거하고 숫자 부분만 추출
+                    .mapToLong(Long::parseLong) // 문자열을 long 타입으로 변환
+                    .max() // 최댓값 찾기
+                    .ifPresent(max -> maxId.set(max)); // 최댓값이 존재하면 maxId 업데이트
 
-            return "f" + String.format("%010d", maxId.incrementAndGet()); // Increment and format the new ID
+            return "f" + String.format("%010d", maxId.incrementAndGet()); // 다음 ID 생성
         } catch (IOException e) {
             throw new RuntimeException("Failed to read Claims Data: " + e.getMessage(), e);
         }

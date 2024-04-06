@@ -4,8 +4,10 @@ package src.Super;
  */
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class Claim {
     private String fid; // Format: f-numbers; 10 numbers
@@ -17,11 +19,14 @@ public class Claim {
     private double claimAmount;
     private ClaimStatus status;
     private ReceiverBankingInfo receiverBankingInfo;
+    private String customerId; // 고객 ID 저장을 위한 새 필드
 
-    public Claim(String fid, LocalDate claimDate, String insuredPerson, String cardNumber, LocalDate examDate, double claimAmount, ClaimStatus status, ReceiverBankingInfo receiverBankingInfo) {
+
+    public Claim(String fid, LocalDate claimDate, String insuredPerson, String customerId, String cardNumber, LocalDate examDate, double claimAmount, ClaimStatus status, ReceiverBankingInfo receiverBankingInfo) {
         this.fid = fid;
         this.claimDate = claimDate;
         this.insuredPerson = insuredPerson;
+        this.customerId = customerId; // 고객 ID 설정
         this.cardNumber = cardNumber;
         this.examDate = examDate;
         this.claimAmount = claimAmount;
@@ -40,6 +45,9 @@ public class Claim {
     public String getfId() {
         return fid;
     }
+    public String getCustomerId() {
+        return customerId;
+    }
 
     public LocalDate getClaimDate() {
         return claimDate;
@@ -48,7 +56,6 @@ public class Claim {
     public String getInsuredPerson() {
         return insuredPerson;
     }
-
     public String getCardNumber() {
         return cardNumber;
     }
@@ -73,11 +80,14 @@ public class Claim {
         return receiverBankingInfo;
     }
 
+
     // Enum for Claim Status
     public enum ClaimStatus {
         NEW, PROCESSING, DONE
     }
-
+    public void setStatus(ClaimStatus status) {
+        this.status = status;
+    }
     // ReceiverBankingInfo inner class
     public void setDocumentNames(List<String> documentNames) {
         this.documentName = documentNames;
@@ -105,5 +115,7 @@ public class Claim {
         public String getNumber() {
             return number;
         }
+
+
     }
 }
