@@ -7,16 +7,13 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.function.Function;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import src.Super.UniqueIdGenerator;
 import src.UserInterface.Login;
-import static src.UserInterface.Login.*;
 import src.Super.CustomerManager;
+import src.UserInterface.UserManagement;
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -25,6 +22,7 @@ public class Main {
 
     public static void startLoginProcess() throws IOException {
         Scanner scanner = new Scanner(System.in);
+
         while (true) {
             System.out.println("\n[ Login Menu ]");
             System.out.println("[1] Login");
@@ -41,19 +39,20 @@ public class Main {
             }
             switch (choice) {
                 case 1:
-                    login(scanner);
+                    Login.login(scanner);
                     break;
                 case 2:
-                    register(scanner);
+                    Login.register(scanner);
                     break;
                 default:
                     System.out.println("\n※ Invalid choice ※");
-            }}}
+            }
+        }
+    }
 
     // Main Menu
     public void startApplication() throws IOException {
         Scanner scanner = new Scanner(System.in);
-        boolean running = true;
 
         while (true) {
             System.out.println("\nWelcome to the Insurance Management System!");
@@ -84,13 +83,13 @@ public class Main {
                     break;
                 case 4:
                     startLoginProcess();
-                    break;
+                    return; // 주의: 로그아웃 시 메인 메뉴를 종료해야 합니다.
                 default:
                     System.out.println("\n※ Invalid choice ※");
                     break;
-            }}
+            }
+        }
     }
-
     public static void manageCustomer(){
         Scanner scanner = new Scanner(System.in);
         CustomerManager customerManager = new CustomerManager(scanner);
@@ -210,7 +209,7 @@ public class Main {
                     viewClaimDetails(scanner);
                     break;
                 case 3:
-                    addNewClaim(scanner);
+//                    addNewClaim(scanner);
                     break;
                 case 4:
                     updateClaim();
@@ -248,7 +247,7 @@ public class Main {
             }
             switch (choice) {
                 case 1:
-                    listAllUsers();
+                    UserManagement.listAllUsers();
                     break;
                 case 2:
                     System.out.println("\nYour ID: " + Login.getLoggedInUserId());
@@ -257,7 +256,7 @@ public class Main {
                     System.out.println("\nYour Password: " + Login.getLoggedInUserPassword());
                     break;
                 case 4:
-                    deleteMyAccount();
+                    UserManagement.deleteMyAccount(Login.getLoggedInUserId(),Login.getLoggedInUserPassword());
                     break;
                 case 5:
                     return; // Exit the Profile menu
@@ -431,7 +430,7 @@ public class Main {
         }
 
         // [3] Add New Claim
-        public static void addNewClaim(Scanner scanner) {
+        /*public static void addNewClaim(Scanner scanner) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             dateFormat.setLenient(false);
 
@@ -596,7 +595,7 @@ public class Main {
         }
 
         Files.write(customerFile.toPath(), updatedLines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-    }
+    }*/
 
         // [4] Update Claim
         public void updateClaim() throws IOException {
@@ -865,47 +864,5 @@ public class Main {
             }
         }
 
-
-    // Main-[3] Profile
-    private void listAllUsers() throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(Login.DATA_PATH));
-        String line;
-        System.out.println("\n[ List of All Users ]");
-        while ((line = reader.readLine()) != null) {
-            String[] userDetails = line.split(",");
-            System.out.println("ID: " + userDetails[0]);
-        }
-        reader.close();
-    }
-    private void deleteMyAccount() throws IOException {
-        File inputFile = new File(Login.DATA_PATH);
-        File tempFile = new File(inputFile.getAbsolutePath() + ".tmp");
-
-        BufferedReader reader = new BufferedReader(new FileReader(inputFile));
-        BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
-
-        String lineToRemove = getLoggedInUserId() + "," + getLoggedInUserPassword();
-        String currentLine;
-
-        while ((currentLine = reader.readLine()) != null) {
-            // Trim newline when comparing with lineToRemove
-            String trimmedLine = currentLine.trim();
-            if (trimmedLine.equals(lineToRemove)) continue;
-            writer.write(currentLine + System.getProperty("line.separator"));
-        }
-        writer.close();
-        reader.close();
-
-        if (!inputFile.delete()) {
-            System.out.println("\n※ Could not delete the original file ※");
-            return;
-        }
-        if (!tempFile.renameTo(inputFile)) {
-            System.out.println("\n※ Could not rename the temporary file ※");
-        }
-
-        System.out.println("\nAccount successfully deleted !");
-        startLoginProcess();
-    }
 
 }

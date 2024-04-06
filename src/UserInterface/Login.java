@@ -2,6 +2,7 @@ package src.UserInterface;
 /**
  * @author Han Yeeun - s3912055
  */
+
 import java.io.*;
 import java.util.Scanner;
 
@@ -27,15 +28,15 @@ public class Login {
             System.out.println("\n[ Login ]");
             System.out.print("- Enter your ID: ");
             String id = scanner.nextLine();
-            if ("back".equalsIgnoreCase(id)) return; // Go back to main menu
+            if ("back".equalsIgnoreCase(id)) return;
             System.out.print("- Enter your Password: ");
             String password = scanner.nextLine();
-            if ("back".equalsIgnoreCase(password)) return; // Go back to main menu
+            if ("back".equalsIgnoreCase(password)) return;
 
-            if (validateCredentials(id, password)) {
+            User user = validateCredentials(id, password);
+            if (user != null) {
                 System.out.println("\nLogin successful.\nRedirecting to Main.java...");
-                loginSuccess = true; // Break the loop and proceed
-                // Instead of calling Main.main(null), instantiate Main and call startApplication
+                loginSuccess = true;
                 src.Main mainApp = new src.Main();
                 mainApp.startApplication();
             } else {
@@ -45,20 +46,18 @@ public class Login {
         }
     }
 
-    private static boolean validateCredentials(String id, String password) throws IOException {
+    private static User validateCredentials(String id, String password) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(DATA_PATH));
         String line;
         while ((line = reader.readLine()) != null) {
             String[] userDetails = line.split(",");
             if (userDetails[0].equals(id) && userDetails[1].equals(password)) {
-                loggedInUserId = id;
-                loggedInUserPassword = password;
                 reader.close();
-                return true;
+                return new User(id, password, userDetails.length > 2 ? userDetails[2] : "");
             }
         }
         reader.close();
-        return false;
+        return null;
     }
 
     public static void register(Scanner scanner) throws IOException {
@@ -67,28 +66,35 @@ public class Login {
             System.out.println("\n[ Register ]");
             System.out.print("- Enter a new ID (5 characters minimum): ");
             String newId = scanner.nextLine();
-            if ("back".equalsIgnoreCase(newId)) return; // Go back to main menu
+            if ("back".equalsIgnoreCase(newId)) return;
             System.out.print("- Enter a new Password (8 characters minimum, letters & numbers): ");
             String newPassword = scanner.nextLine();
-            if ("back".equalsIgnoreCase(newPassword)) return; // Go back to main menu
+            if ("back".equalsIgnoreCase(newPassword)) return;
+            System.out.print("- Enter your Name: ");
+            String name = scanner.nextLine(); // Add name input
 
             if (isIdExists(newId)) {
                 System.out.println("\n※ This is a duplicate ID ※");
-                System.out.println("※ Please enter another ID ※");
-                System.out.println("※ Enter 'back' to return to the main menu or try again ※");
             } else if (!isValidRegistration(newId, newPassword)) {
-                System.out.println("\n※ Please enter a valid 5-character minimum ID & 8-character minimum password (letters & numbers) ※");
-                System.out.println("※ Enter 'back' to return to the main menu or try again ※");
+                System.out.println("\n※ Please enter a valid ID & password ※");
             } else {
-                BufferedWriter writer = new BufferedWriter(new FileWriter(DATA_PATH, true));
-                writer.write(newId + "," + newPassword);
-                writer.newLine();
-                writer.close();
+                // Here, we create a User object and use it to save user data
+                User newUser = new User(newId, newPassword, name);
+                saveUser(newUser); // Assuming you implement this method to save user details
                 System.out.println("\nRegistration successful.\nYou can now login.\n");
-                registrationSuccess = true; // Break the loop and proceed
+                registrationSuccess = true;
             }
         }
     }
+
+    private static void saveUser(User user) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(DATA_PATH, true));
+        // Assuming the user data format is ID,Password,Name
+        writer.write(user.getUserID() + "," + user.getUserPassword() + "," + user.getUserName());
+        writer.newLine();
+        writer.close();
+    }
+
 
     private static boolean isValidRegistration(String id, String password) {
         return id.length() >= 5 && password.length() >= 8 && password.matches("^(?=.*[0-9])(?=.*[a-zA-Z])(?=\\S+$).{8,}$");

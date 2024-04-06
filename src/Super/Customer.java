@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Customer {
-    private final String cid; // 고객 ID
-    private final String fullName; // 전체 이름
-    private InsuranceCard insuranceCard; // 보험 카드 객체
-    private boolean isPolicyHolder; // 정책 보유자 여부
-    private Customer policyHolder; // 이 고객의 정책 보유자 (null일 경우 자기 자신이 정책 보유자)
-    private final List<String> claims = new ArrayList<>(); // 클레임 목록
-    private final List<Customer> dependents = new ArrayList<>(); // 의존자 목록
+    private final String cid;
+    private final String fullName;
+    private InsuranceCard insuranceCard;
+    private boolean isPolicyHolder;
+    private Customer policyHolder;
+    private final List<String> claims = new ArrayList<>();
+    private final List<Customer> dependents = new ArrayList<>();
 
     public Customer(String cid, String fullName, boolean isPolicyHolder) {
         this.cid = cid;
