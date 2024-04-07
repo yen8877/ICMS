@@ -1,0 +1,11 @@
+Id: c1000008
+Full name: RobertDowneyJr.
+Policy holder: RobertDowneyJr.(c1000008)
+Dependents: IndioFalconerDowney(c1000007), SusanDowney(c1000009), RobertDowneySr.(c1000010)
+Insurance card: 26326-98388
+Expiration date: 2060-04-04
+Card holder: RobertDowneyJr.(c1000008)
+Policy owner: RMIT
+
+Claim List: 
+f0000000009 | 2024-04-09 | 2024-04-08 | RobertDowneyJr.(c1000008) | 26326-98388 | 608000.00 | Techcom - RobertDowneyJr. - 8907654321 | PROCESSING

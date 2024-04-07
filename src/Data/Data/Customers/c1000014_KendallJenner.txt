@@ -1,0 +1,11 @@
+Id: c1000014
+Full name: KendallJenner
+Policy holder: KrisJenner(c1000011)
+Dependents: None
+Insurance card: 22908-05419
+Expiration date: 2095-11-03
+Card holder: KendallJenner(c1000014)
+Policy owner: RMIT
+
+Claim List: 
+f0000000014 | 2024-04-10 | 2024-04-09 | KendallJenner(c1000014) | 22908-05419 | 340000.00 | BAO - KendallJenner - 0987654323 | PROCESSING

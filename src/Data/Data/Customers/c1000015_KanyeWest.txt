@@ -1,0 +1,12 @@
+Id: c1000015
+Full name: KanyeWest
+Policy holder: KendallJenner(c1000014)
+Dependents: None
+Insurance card: 30759-20422
+Expiration date: 2080-06-08
+Card holder: KanyeWest(c1000015)
+Policy owner: RMIT
+
+Claim List: 
+f0000000012 | 2024-04-09 | 2024-04-09 | KanyeWest(c1000015) | 30759-20422 | 10000000.00 | BIDC - KanyeWest - 5678904321 | PROCESSING
+f0000000013 | 2024-04-09 | 2024-04-07 | KanyeWest(c1000015) | 30759-20422 | 450000.00 | BIDC - KanyeWest - 5678904321 | PROCESSING

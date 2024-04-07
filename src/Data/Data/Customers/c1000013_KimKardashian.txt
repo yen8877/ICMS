@@ -1,0 +1,10 @@
+Id: c1000013
+Full name: KimKardashian
+Policy holder: KrisJenner(c1000011)
+Dependents: None
+Insurance card: 45816-89643
+Expiration date: 2090-10-21
+Card holder: KimKardashian(c1000013)
+Policy owner: RMIT
+
+Claim List: 

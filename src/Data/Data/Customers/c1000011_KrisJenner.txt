@@ -1,0 +1,11 @@
+Id: c1000011
+Full name: KrisJenner
+Policy holder: KrisJenner(c1000011)
+Dependents: None
+Insurance card: 86075-73950
+Expiration date: 2060-11-05
+Card holder: KrisJenner(c1000011)
+Policy owner: RMIT
+
+Claim List: 
+f0000000011 | 2024-04-09 | 2024-04-09 | KrisJenner(c1000011) | 86075-73950 | 800000.00 | Woori - KrisJenner - 6789054321 | PROCESSING
