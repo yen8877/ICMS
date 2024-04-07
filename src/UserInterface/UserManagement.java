@@ -6,8 +6,12 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserManagement {
+public class UserManagement extends User {
     private static final String DATA_PATH = Login.DATA_PATH;
+
+    UserManagement(String userID, String userPassword, String userName) {
+        super(userID, userPassword, userName);
+    }
 
     public static void listAllUsers() throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(DATA_PATH));
