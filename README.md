@@ -3,12 +3,12 @@ Insurance Management System: README
 Welcome to the Insurance Management System (IMS), a comprehensive solution designed to streamline the management of insurance-related tasks. This application facilitates user-friendly operations for both customers and administrators, enabling efficient handling of customer information, claims processing, and user management.
 
 1. Getting Started
+
 Prerequisites
 Before running the IMS, ensure you have the following:
 
 - Java Development Kit (JDK) installed on your system.
 - An Integrated Development Environment (IDE) or a command-line tool to compile and run Java applications.
-
 
 Installation:
     1. Clone the repository or download the source code.
@@ -20,13 +20,11 @@ The Insurance Management System offers a variety of features, organized into a s
 
     a. User Registration and Login
 New users must register before accessing the system. The registration process requires a username and password. For existing users, the system supports login functionality with username and password validation.
-
     - Pre-registered credentials: Id: a12345, Password: a1234567
     - Note: Usernames and passwords must be a combination of letters and numbers.
 
     b. Main Menu
 After logging in, the user is greeted with the Main Menu, offering the following options:
-
     - Manage Customers: Add, view, update, or delete customer information.
     - Manage Claims: Handle claims processing, including adding, viewing, updating, or deleting claims.
     - Profiles: Access and manage user profiles.
