@@ -1,0 +1,10 @@
+Id: c1000009
+Full name: SusanDowney
+Policy holder: RobertDowneyJr.(c1000008)
+Dependents: None
+Insurance card: 74775-16117
+Expiration date: 2070-11-07
+Card holder: SusanDowney(c1000009)
+Policy owner: RMIT
+
+Claim List: 

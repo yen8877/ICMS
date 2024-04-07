@@ -1,0 +1,11 @@
+Id: c1000003
+Full name: EmilyJohnson
+Policy holder: EmilyJohnson(c1000003)
+Dependents: None
+Insurance card: 92859-03435
+Expiration date: 2098-12-12
+Card holder: EmilyJohnson(c1000003)
+Policy owner: RMIT
+
+Claim List:
+f0000000004 | 2024-04-07 | 2024-04-06 | EmilyJohnson(c1000003) | 92859-03435 | 248000 | Vietcom - EmilyJohnson - c1000003 | DONE

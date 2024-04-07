@@ -1,0 +1,12 @@
+Id: c1000001
+Full name: HanYeeun
+Policy holder: HanYeeun(c1000001)
+Dependents: , LimUseok(c1000002)
+Insurance card: 31664-41396
+Expiration date: 2080-08-07
+Card holder: HanYeeun(c1000001)
+Policy owner: RMIT
+
+Claim List: 
+f0000000001 | 2024-04-07 | 2024-04-07 | HanYeeun(c1000001) | 31664-41396 | 2000000 | shinhan - HanYeeun - 1234512345 | DONE
+f0000000015 | 2024-04-10 | 2024-04-10 | HanYeeun(c1000001) | 31664-41396 | 908000.00 | shinhan - HanYeeun - 1234512345 | NEW
