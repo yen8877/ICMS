@@ -20,14 +20,14 @@ Installation:
 
 The Insurance Management System offers a variety of features, organized into a simple and intuitive menu-driven interface. Upon launching the application, users are prompted to log in or register.
 
-    a. User Registration and Login
+a. User Registration and Login
 
 New users must register before accessing the system. The registration process requires a username and password. For existing users, the system supports login functionality with username and password validation.
 
     - Pre-registered credentials: Id: a12345, Password: a1234567
     - Note: Usernames and passwords must be a combination of letters and numbers.
 
-    b. Main Menu
+b. Main Menu
     
 After logging in, the user is greeted with the Main Menu, offering the following options:
     - Manage Customers: Add, view, update, or delete customer information.
@@ -37,19 +37,19 @@ After logging in, the user is greeted with the Main Menu, offering the following
     
 Each of these main features branches into more specific operations, allowing users to perform detailed actions within each category.
 
-    c. Managing Customers
+c. Managing Customers
     
 Within the customer management section, users can perform a variety of tasks such as listing all customers, viewing specific customer details, adding new customers, updating customer information, and deleting customers.
 
-    d. Managing Claims
+d. Managing Claims
     
 The claims management feature enables users to list all claims, view specific claim details, add new claims, update existing claims, and delete claims. It supports detailed operations for each claim, including processing updates and bank information management.
 
-    e. User Profile Management
+e. User Profile Management
     
 Users can view their ID and password, list all users, and delete their account through the profile management feature.
 
-    f. Log Out
+f. Log Out
     
 Users can log out of the application, which returns them to the login screen, ensuring secure access control.
 
