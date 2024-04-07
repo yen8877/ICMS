@@ -1,5 +1,6 @@
 # ICMS
 Insurance Management System: README
+
 Welcome to the Insurance Management System (IMS), a comprehensive solution designed to streamline the management of insurance-related tasks. This application facilitates user-friendly operations for both customers and administrators, enabling efficient handling of customer information, claims processing, and user management.
 
 1. Getting Started
